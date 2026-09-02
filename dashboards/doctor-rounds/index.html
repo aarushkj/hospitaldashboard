@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Doctor Rounds App — Mobile-optimized bedside rounding tool with Web Speech dictation and digital order entry.">
+    <title>Doctor Rounds — Smart Hospital</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👨‍⚕️</text></svg>">
+</head>
+<body>
+    <!-- App Header -->
+    <header class="app-header">
+        <div class="header-left">
+            <div class="doctor-badge">👨‍⚕️</div>
+            <div class="header-titles">
+                <h1>Doctor Rounds</h1>
+                <span class="doctor-name">Dr. Patel · Cardiology Ward</span>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="rounds-progress-pill">
+                <span>Rounds: </span>
+                <strong id="progress-count">3 / 12</strong>
+            </div>
+            <a href="../../index.html" class="nav-btn-link" title="Nurse Command Desk">🏥 Desk</a>
+        </div>
+    </header>
+
+    <!-- Progress Bar -->
+    <div class="progress-bar-container">
+        <div class="progress-bar-fill" id="progress-bar-fill" style="width: 25%;"></div>
+    </div>
+
+    <!-- Main Container -->
+    <main class="main-container">
+        <!-- Patient Selector Carousel / Tabs -->
+        <section class="patient-selector-bar" id="patient-selector-bar">
+            <!-- Populated by JS -->
+        </section>
+
+        <!-- Active Patient View -->
+        <div class="rounding-grid" id="rounding-grid">
+            <!-- Left Panel: Patient Summary & Vital Trends -->
+            <div class="grid-col patient-summary-col">
+                <!-- Patient Info Card -->
+                <div class="card patient-card" id="active-patient-card">
+                    <!-- Populated by JS -->
+                </div>
+
+                <!-- Vital Sign Trends -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Vital Trends & NEWS2 Score</h3>
+                        <span class="badge-live">Live Telemetry</span>
+                    </div>
+                    <div class="vital-sparkline-group" id="vital-sparkline-group">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Rounds Checklist -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Bedside Rounds Checklist</h3>
+                        <span class="card-subtitle">Tap to complete</span>
+                    </div>
+                    <div class="checklist" id="rounds-checklist">
+                        <label class="check-item">
+                            <input type="checkbox" id="chk-vitals" checked>
+                            <span class="checkmark"></span>
+                            <span class="check-text">Vitals & NEWS2 Trends Reviewed</span>
+                            <span class="check-time" id="time-chk-vitals">09:15 AM</span>
+                        </label>
+                        <label class="check-item">
+                            <input type="checkbox" id="chk-exam">
+                            <span class="checkmark"></span>
+                            <span class="check-text">Bedside Physical Examination</span>
+                            <span class="check-time" id="time-chk-exam">--:--</span>
+                        </label>
+                        <label class="check-item">
+                            <input type="checkbox" id="chk-counsel">
+                            <span class="checkmark"></span>
+                            <span class="check-text">Patient & Family Counseled</span>
+                            <span class="check-time" id="time-chk-counsel">--:--</span>
+                        </label>
+                        <label class="check-item">
+                            <input type="checkbox" id="chk-orders">
+                            <span class="checkmark"></span>
+                            <span class="check-text">Orders Signed & Submitted</span>
+                            <span class="check-time" id="time-chk-orders">--:--</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Voice Dictation & Digital Orders -->
+            <div class="grid-col actions-col">
+                <!-- Voice-to-Text Clinical Dictation -->
+                <div class="card dictation-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00b4d8" stroke-width="2">
+                                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                                <line x1="12" y1="19" x2="12" y2="23"/>
+                                <line x1="8" y1="23" x2="16" y2="23"/>
+                            </svg>
+                            <h3>Voice-to-Text Clinical Dictation</h3>
+                        </div>
+                        <span class="speech-status-badge" id="speech-status-badge">Standby</span>
+                    </div>
+
+                    <div class="dictation-toolbar">
+                        <button class="btn-dictate" id="btn-dictate">
+                            <span class="mic-icon">🎙️</span>
+                            <span id="btn-dictate-label">Start Voice Dictation</span>
+                        </button>
+                        <button class="btn-clear" id="btn-clear-dictation" title="Clear Notes">Clear</button>
+                    </div>
+
+                    <div class="dictation-box-container">
+                        <textarea id="dictation-textarea" class="dictation-textarea" placeholder="Tap 'Start Voice Dictation' to dictate clinical notes hands-free, or type notes here..."></textarea>
+                    </div>
+
+                    <div class="quick-phrase-tags">
+                        <span class="phrase-label">Quick Phrases:</span>
+                        <button class="tag-btn" data-phrase="Patient chest clear to auscultation. ">Chest Clear</button>
+                        <button class="tag-btn" data-phrase="Afebrile, vital signs within target limits. ">Vitals Normal</button>
+                        <button class="tag-btn" data-phrase="Continue IV Antibiotic protocol for 48h. ">Continue IV</button>
+                        <button class="tag-btn" data-phrase="Plan for discharge evaluation tomorrow. ">Discharge Plan</button>
+                    </div>
+
+                    <div class="dictation-actions">
+                        <button class="btn-primary" id="btn-save-note">Save Clinical Note</button>
+                    </div>
+                </div>
+
+                <!-- Digital Order Entry & E-Sign -->
+                <div class="card orders-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                                <line x1="16" y1="13" x2="8" y2="13"/>
+                                <line x1="16" y1="17" x2="8" y2="17"/>
+                                <polyline points="10 9 9 9 8 9"/>
+                            </svg>
+                            <h3>Digital Order Entry</h3>
+                        </div>
+                    </div>
+
+                    <!-- New Order Form -->
+                    <form id="order-form" class="order-form">
+                        <div class="form-row">
+                            <div class="form-group flex-1">
+                                <label for="order-category">Category</label>
+                                <select id="order-category" class="form-select">
+                                    <option value="Medication">💊 Medication</option>
+                                    <option value="Lab Work">🔬 Lab Work</option>
+                                    <option value="Imaging">🩻 Imaging / Radiology</option>
+                                    <option value="Consultation">👨‍⚕️ Specialist Consult</option>
+                                    <option value="Nursing Care">🩺 Nursing Procedure</option>
+                                </select>
+                            </div>
+                            <div class="form-group flex-1">
+                                <label for="order-urgency">Urgency</label>
+                                <select id="order-urgency" class="form-select">
+                                    <option value="Routine">Routine</option>
+                                    <option value="URGENT">🟡 URGENT</option>
+                                    <option value="STAT">🔴 STAT (Immediate)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="order-details">Order Instruction</label>
+                            <input type="text" id="order-details" class="form-input" placeholder="e.g. Paracetamol 500mg IV Q8H or Chest X-Ray PA View" required>
+                        </div>
+
+                        <button type="submit" class="btn-add-order">+ Add Order to Sheet</button>
+                    </form>
+
+                    <!-- Active Orders Sheet -->
+                    <div class="orders-sheet">
+                        <div class="sheet-title">Rounds Order Sheet (<span id="order-count">2</span>)</div>
+                        <div class="order-list" id="order-list">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Digital Sign-Off Button -->
+                    <div class="esign-container">
+                        <button class="btn-esign" id="btn-esign">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                            <span>E-Sign & Submit Orders for Room <span id="esign-room">103</span></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
