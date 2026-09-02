@@ -1,0 +1,769 @@
+/* ============================================
+   FAMILY PORTAL — Design System
+   AI-Powered Smart Hospital Room
+   ============================================ */
+
+/* --- Custom Properties --- */
+:root {
+    --bg-main: #0b1329;
+    --bg-card: rgba(18, 28, 56, 0.7);
+    --bg-card-hover: rgba(24, 38, 74, 0.85);
+    --bg-glass: rgba(255, 255, 255, 0.04);
+    
+    --border-light: rgba(255, 255, 255, 0.08);
+    --border-accent: rgba(0, 180, 216, 0.3);
+    
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    
+    --accent-teal: #00b4d8;
+    --accent-blue: #3b82f6;
+    --accent-indigo: #6366f1;
+
+    --status-good: #10b981;
+    --status-good-bg: rgba(16, 185, 129, 0.12);
+    --status-good-border: rgba(16, 185, 129, 0.3);
+
+    --status-warn: #f59e0b;
+    --status-warn-bg: rgba(245, 158, 11, 0.12);
+    --status-warn-border: rgba(245, 158, 11, 0.3);
+
+    --status-alert: #ef4444;
+    --status-alert-bg: rgba(239, 68, 68, 0.12);
+    --status-alert-border: rgba(239, 68, 68, 0.3);
+
+    --font-heading: 'Plus Jakarta Sans', sans-serif;
+    --font-body: 'Inter', sans-serif;
+
+    --radius-sm: 8px;
+    --radius-md: 14px;
+    --radius-lg: 20px;
+    --radius-full: 9999px;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-body);
+    background: var(--bg-main);
+    color: var(--text-primary);
+    min-height: 100vh;
+    background-image: 
+        radial-gradient(circle at 10% 20%, rgba(0, 180, 216, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(99, 102, 241, 0.08) 0%, transparent 40%);
+    -webkit-font-smoothing: antialiased;
+}
+
+/* --- Auth / Login Screen --- */
+.auth-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.auth-card {
+    background: var(--bg-card);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    width: 100%;
+    max-width: 440px;
+    padding: 36px 28px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    text-align: center;
+}
+
+.auth-badge {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 20px;
+    background: linear-gradient(135deg, var(--accent-teal), var(--accent-indigo));
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: 0 0 25px rgba(0, 180, 216, 0.3);
+}
+
+.auth-header h1 {
+    font-family: var(--font-heading);
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #ffffff, #cbd5e1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.auth-header p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 28px;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.token-input-group {
+    text-align: left;
+}
+
+.token-input-group label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+}
+
+.input-field {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--bg-glass);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    padding: 12px 16px;
+    transition: all 0.2s ease;
+}
+
+.input-field:focus-within {
+    border-color: var(--accent-teal);
+    box-shadow: 0 0 0 3px rgba(0, 180, 216, 0.15);
+}
+
+.input-field svg {
+    color: var(--text-muted);
+}
+
+.input-field input {
+    background: none;
+    border: none;
+    outline: none;
+    font-family: monospace;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: 0.15em;
+    width: 100%;
+    text-transform: uppercase;
+}
+
+.input-field input::placeholder {
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    font-weight: 400;
+    font-size: 0.95rem;
+}
+
+.btn-auth {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: linear-gradient(135deg, var(--accent-teal), #0284c7);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 14px;
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 15px rgba(0, 180, 216, 0.25);
+}
+
+.btn-auth:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(0, 180, 216, 0.35);
+}
+
+.demo-hints {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-light);
+    text-align: left;
+}
+
+.hint-title {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.hint-chips {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.hint-chip {
+    background: var(--bg-glass);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    color: var(--accent-teal);
+    font-size: 0.78rem;
+    padding: 8px 12px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+}
+
+.hint-chip:hover {
+    background: rgba(0, 180, 216, 0.1);
+    border-color: var(--accent-teal);
+}
+
+.auth-footer {
+    margin-top: 20px;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+}
+
+/* --- Portal Dashboard Layout --- */
+.portal-wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.portal-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 32px;
+    background: rgba(11, 19, 41, 0.85);
+    backdrop-filter: blur(15px);
+    border-bottom: 1px solid var(--border-light);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+.nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.nav-icon {
+    font-size: 1.5rem;
+}
+
+.nav-titles {
+    display: flex;
+    flex-direction: column;
+}
+
+.hospital-name {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.nav-subtitle {
+    font-size: 0.72rem;
+    color: var(--accent-teal);
+    font-weight: 500;
+}
+
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.patient-pill {
+    background: var(--bg-glass);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-full);
+    padding: 6px 14px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.btn-logout {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    padding: 6px 12px;
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-logout:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--status-alert);
+    border-color: var(--status-alert-border);
+}
+
+.portal-content {
+    flex: 1;
+    max-width: 1100px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 32px 24px;
+}
+
+/* Card Base */
+.card {
+    background: var(--bg-card);
+    backdrop-filter: blur(15px);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Patient Banner Card */
+.patient-banner-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+    background: linear-gradient(135deg, rgba(18, 28, 56, 0.9), rgba(15, 23, 42, 0.95));
+    border-left: 4px solid var(--accent-teal);
+}
+
+.banner-main {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.patient-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: var(--radius-full);
+    background: linear-gradient(135deg, var(--accent-teal), var(--accent-indigo));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-heading);
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: white;
+    box-shadow: 0 4px 15px rgba(0, 180, 216, 0.25);
+}
+
+.patient-name-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.patient-name-row h2 {
+    font-family: var(--font-heading);
+    font-size: 1.35rem;
+    font-weight: 700;
+}
+
+.badge-room {
+    background: rgba(0, 180, 216, 0.15);
+    color: var(--accent-teal);
+    border: 1px solid rgba(0, 180, 216, 0.3);
+    border-radius: var(--radius-full);
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.patient-subtext {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
+.status-box {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+}
+
+.status-badge-large {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: var(--radius-full);
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+.status-badge-large.good {
+    background: var(--status-good-bg);
+    color: var(--status-good);
+    border: 1px solid var(--status-good-border);
+}
+
+.status-badge-large.warn {
+    background: var(--status-warn-bg);
+    color: var(--status-warn);
+    border: 1px solid var(--status-warn-border);
+}
+
+.status-badge-large.alert {
+    background: var(--status-alert-bg);
+    color: var(--status-alert);
+    border: 1px solid var(--status-alert-border);
+}
+
+.status-time {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+}
+
+/* Grid layout for main and sidebar */
+.portal-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 24px;
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.card-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.card-title h3 {
+    font-family: var(--font-heading);
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.card-subtitle {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.live-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    color: var(--status-good);
+    font-weight: 500;
+}
+
+.live-indicator .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--status-good);
+    animation: blink 1.5s infinite;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+/* Plain language vitals list */
+.vitals-summary-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.vital-summary-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: var(--bg-glass);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    transition: all 0.2s ease;
+}
+
+.vital-summary-item:hover {
+    background: var(--bg-card-hover);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.vital-icon-box {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.vital-icon-box.good { background: var(--status-good-bg); border: 1px solid var(--status-good-border); }
+.vital-icon-box.warn { background: var(--status-warn-bg); border: 1px solid var(--status-warn-border); }
+.vital-icon-box.alert { background: var(--status-alert-bg); border: 1px solid var(--status-alert-border); }
+
+.vital-text-content {
+    flex: 1;
+}
+
+.vital-text-title {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 2px;
+}
+
+.vital-text-desc {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.vital-text-desc.good { color: var(--status-good); }
+.vital-text-desc.warn { color: var(--status-warn); }
+.vital-text-desc.alert { color: var(--status-alert); }
+
+/* Timeline */
+.timeline {
+    position: relative;
+    padding-left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 6px;
+    bottom: 6px;
+    width: 2px;
+    background: var(--border-light);
+}
+
+.timeline-item {
+    position: relative;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -20px;
+    top: 6px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent-teal);
+    border: 2px solid var(--bg-main);
+}
+
+.timeline-time {
+    font-size: 0.72rem;
+    color: var(--accent-teal);
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.timeline-desc {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+/* Care Team list */
+.care-team-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.care-member {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px;
+    background: var(--bg-glass);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-light);
+}
+
+.member-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-full);
+    background: rgba(99, 102, 241, 0.2);
+    border: 1px solid rgba(99, 102, 241, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+}
+
+.member-info h4 {
+    font-family: var(--font-heading);
+    font-size: 0.88rem;
+    font-weight: 600;
+}
+
+.member-info p {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* Visiting Hours Card */
+.visiting-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    background: linear-gradient(135deg, rgba(0, 180, 216, 0.08), rgba(15, 23, 42, 0.6));
+    border-color: rgba(0, 180, 216, 0.2);
+}
+
+.visiting-icon {
+    font-size: 1.5rem;
+}
+
+.visiting-details h4 {
+    font-family: var(--font-heading);
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.visiting-time {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--accent-teal);
+}
+
+.visiting-note {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+/* Message Form */
+.message-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+}
+
+.form-select, .form-textarea {
+    width: 100%;
+    background: var(--bg-glass);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.form-select:focus, .form-textarea:focus {
+    border-color: var(--accent-teal);
+    box-shadow: 0 0 0 3px rgba(0, 180, 216, 0.15);
+}
+
+.form-select option {
+    background: #0f172a;
+    color: var(--text-primary);
+}
+
+.btn-send-msg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: var(--accent-indigo);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    font-family: var(--font-heading);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-send-msg:hover {
+    background: #4f46e5;
+}
+
+.msg-status {
+    font-size: 0.78rem;
+    text-align: center;
+    min-height: 20px;
+}
+
+.msg-status.success { color: var(--status-good); }
+
+.portal-footer {
+    text-align: center;
+    padding: 24px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border-light);
+    margin-top: auto;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .portal-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .patient-banner-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .status-box {
+        align-items: flex-start;
+    }
+}
