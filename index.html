@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AI-Powered Smart Hospital Room — Nurse Command Station for real-time patient monitoring, NEWS2 triage, and nurse call management.">
+    <title>Nurse Command Station — Smart Hospital</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏥</text></svg>">
+</head>
+<body>
+    <!-- Header -->
+    <header id="main-header">
+        <div class="header-left">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                    </svg>
+                </div>
+                <div class="logo-text">
+                    <h1>Nurse Command Station</h1>
+                    <span class="ward-name">Cardiology Ward — Floor 3</span>
+                </div>
+            </div>
+        </div>
+        <div class="header-stats" id="header-stats">
+            <!-- Populated by JS -->
+        </div>
+        <div class="header-right">
+            <div class="header-actions">
+                <button class="icon-btn" id="btn-sound-toggle" title="Toggle alert sounds">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+                    </svg>
+                </button>
+                <button class="icon-btn" id="btn-fullscreen" title="Toggle fullscreen">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/>
+                        <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="nurse-profile">
+                <div class="avatar">PS</div>
+                <div class="nurse-info">
+                    <span class="nurse-name">Nurse Priya S.</span>
+                    <span class="shift-info">Day Shift — 07:00–19:00</span>
+                </div>
+            </div>
+            <div class="clock" id="clock"></div>
+        </div>
+    </header>
+
+    <!-- Critical Alert Banner -->
+    <section class="alerts-banner" id="alerts-banner" style="display:none;">
+        <div class="alerts-header">
+            <div class="alerts-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <span>CRITICAL ALERTS (<span id="alert-count">0</span>)</span>
+            </div>
+            <button class="btn-collapse" id="btn-collapse-alerts">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
+            </button>
+        </div>
+        <div class="alerts-list" id="alerts-list">
+            <!-- Populated by JS -->
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main id="main-content">
+        <!-- Room Grid -->
+        <section class="ward-grid-container">
+            <div class="section-header">
+                <h2>Ward Overview</h2>
+                <div class="grid-controls">
+                    <div class="filter-pills">
+                        <button class="pill active" data-filter="all">All</button>
+                        <button class="pill" data-filter="high">🔴 High</button>
+                        <button class="pill" data-filter="medium">🟡 Medium</button>
+                        <button class="pill" data-filter="low">🟢 Low</button>
+                    </div>
+                    <div class="search-box">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        <input type="text" id="search-input" placeholder="Search patient or room...">
+                    </div>
+                </div>
+            </div>
+            <div class="ward-grid" id="ward-grid">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+
+        <!-- Nurse Calls Sidebar -->
+        <aside class="calls-sidebar" id="calls-sidebar">
+            <div class="sidebar-header">
+                <h2>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M15.05 5A5 5 0 0 1 19 8.95M15.05 1A9 9 0 0 1 23 8.94m-1 7.98v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+                    </svg>
+                    Nurse Calls
+                </h2>
+                <span class="call-count" id="call-count">0</span>
+            </div>
+            <div class="calls-list" id="calls-list">
+                <!-- Populated by JS -->
+            </div>
+            <div class="sidebar-footer">
+                <div class="avg-response">
+                    <span class="label">Avg Response</span>
+                    <span class="value" id="avg-response-time">—</span>
+                </div>
+                <div class="calls-resolved">
+                    <span class="label">Resolved Today</span>
+                    <span class="value" id="calls-resolved">14</span>
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <!-- Patient Detail Modal -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal" id="patient-modal">
+            <div class="modal-header">
+                <div class="modal-title" id="modal-title"></div>
+                <button class="modal-close" id="modal-close">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Connection Status -->
+    <div class="connection-status" id="connection-status">
+        <div class="status-dot live"></div>
+        <span>LIVE — Simulated Data Stream</span>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
