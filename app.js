@@ -151,8 +151,8 @@ const NURSE_CALLS = [
 
 // ─── State ──────────────────────────────────────────
 const state = {
-    patients: [],
-    nurseCalls: [...NURSE_CALLS],
+    patients: window.SmartHospitalStore ? window.SmartHospitalStore.getPatients() : [],
+    nurseCalls: window.SmartHospitalStore ? window.SmartHospitalStore.getNurseCalls() : [...NURSE_CALLS],
     activeFilter: 'all',
     searchQuery: '',
     selectedPatient: null,
@@ -257,51 +257,49 @@ function getVitalStatus(paramName, score) {
 
 // ─── Simulation Engine ─────────────────────────────
 function initPatients() {
-    state.patients = PATIENTS.map(p => {
-        const vitals = { ...p.baselines };
-        const history = {
-            hr: Array.from({ length: 20 }, () => vitals.hr + (Math.random() - 0.5) * 6),
-            spo2: Array.from({ length: 20 }, () => Math.min(100, Math.max(85, vitals.spo2 + (Math.random() - 0.5) * 3))),
-            temp: Array.from({ length: 20 }, () => vitals.temp + (Math.random() - 0.5) * 0.4)
-        };
-        const news2 = calculateNEWS2(vitals, p.consciousness, p.supplementalO2, p.spo2Scale);
-        return {
-            ...p,
-            vitals,
-            history,
-            news2
-        };
-    });
+    if (window.SmartHospitalStore) {
+        state.patients = window.SmartHospitalStore.getPatients();
+        state.nurseCalls = window.SmartHospitalStore.getNurseCalls();
+    } else {
+        state.patients = PATIENTS.map(p => {
+            const vitals = { ...p.baselines };
+            const history = {
+                hr: Array.from({ length: 20 }, () => vitals.hr + (Math.random() - 0.5) * 6),
+                spo2: Array.from({ length: 20 }, () => Math.min(100, Math.max(85, vitals.spo2 + (Math.random() - 0.5) * 3))),
+                temp: Array.from({ length: 20 }, () => vitals.temp + (Math.random() - 0.5) * 0.4)
+            };
+            const news2 = calculateNEWS2(vitals, p.consciousness, p.supplementalO2, p.spo2Scale);
+            return { ...p, vitals, history, news2 };
+        });
+    }
 }
 
 function simulateVitals() {
+    const batchUpdates = {};
+
     state.patients.forEach(p => {
-        const base = p.baselines;
+        const base = p.baselines || p.vitals;
         const jitter = (range) => (Math.random() - 0.5) * 2 * range;
 
-        // Drift toward baseline with noise
-        p.vitals.hr = Math.round(clamp(
+        const newHr = Math.round(clamp(
             p.vitals.hr + jitter(2) + (base.hr - p.vitals.hr) * 0.05,
             30, 180
         ));
-        p.vitals.spo2 = Math.round(clamp(
+        const newSpo2 = Math.round(clamp(
             p.vitals.spo2 + jitter(0.8) + (base.spo2 - p.vitals.spo2) * 0.08,
             80, 100
         ));
-        p.vitals.temp = parseFloat(clamp(
+        const newTemp = parseFloat(clamp(
             p.vitals.temp + jitter(0.08) + (base.temp - p.vitals.temp) * 0.05,
             34.0, 42.0
         ).toFixed(1));
-        p.vitals.respRate = Math.round(clamp(
-            p.vitals.respRate + jitter(1) + (base.respRate - p.vitals.respRate) * 0.05,
-            6, 40
-        ));
-        p.vitals.systolicBp = Math.round(clamp(
-            p.vitals.systolicBp + jitter(2) + (base.systolicBp - p.vitals.systolicBp) * 0.05,
-            70, 240
-        ));
 
-        // Update history
+        p.vitals.hr = newHr;
+        p.vitals.spo2 = newSpo2;
+        p.vitals.temp = newTemp;
+
+        batchUpdates[p.room] = { hr: newHr, spo2: newSpo2, temp: newTemp };
+
         p.history.hr.push(p.vitals.hr);
         p.history.spo2.push(p.vitals.spo2);
         p.history.temp.push(p.vitals.temp);
@@ -309,9 +307,12 @@ function simulateVitals() {
         if (p.history.spo2.length > 30) p.history.spo2.shift();
         if (p.history.temp.length > 30) p.history.temp.shift();
 
-        // Recalculate NEWS2
         p.news2 = calculateNEWS2(p.vitals, p.consciousness, p.supplementalO2, p.spo2Scale);
     });
+
+    if (window.SmartHospitalStore) {
+        window.SmartHospitalStore.batchUpdateVitals(batchUpdates);
+    }
 }
 
 function clamp(v, min, max) { return Math.min(max, Math.max(min, v)); }
@@ -658,11 +659,16 @@ function generateTimeline(patient) {
 
 // ─── Nurse Call Actions ─────────────────────────────
 function respondToCall(callId) {
+    if (window.SmartHospitalStore) {
+        window.SmartHospitalStore.acknowledgeNurseCall(callId, 'Nurse Priya');
+    }
     const call = state.nurseCalls.find(c => c.id === callId);
     if (call) {
         call.status = 'responded';
         state.callsResolvedToday++;
-        document.getElementById('calls-resolved').textContent = state.callsResolvedToday;
+        if (document.getElementById('calls-resolved')) {
+            document.getElementById('calls-resolved').textContent = state.callsResolvedToday;
+        }
         renderNurseCalls();
         renderWardGrid();
         renderHeaderStats();
@@ -670,15 +676,17 @@ function respondToCall(callId) {
 }
 
 function dismissCall(callId) {
-    const call = state.nurseCalls.find(c => c.id === callId);
-    if (call) {
-        call.status = 'dismissed';
-        state.callsResolvedToday++;
-        document.getElementById('calls-resolved').textContent = state.callsResolvedToday;
-        renderNurseCalls();
-        renderWardGrid();
-        renderHeaderStats();
+    if (window.SmartHospitalStore) {
+        window.SmartHospitalStore.resolveNurseCall(callId);
     }
+    state.nurseCalls = state.nurseCalls.filter(c => c.id !== callId);
+    state.callsResolvedToday++;
+    if (document.getElementById('calls-resolved')) {
+        document.getElementById('calls-resolved').textContent = state.callsResolvedToday;
+    }
+    renderNurseCalls();
+    renderWardGrid();
+    renderHeaderStats();
 }
 
 function acknowledgeAlert(patientId) {
@@ -832,6 +840,16 @@ function init() {
     renderAll();
     updateClock();
 
+    if (window.SmartHospitalStore) {
+        window.SmartHospitalStore.subscribe((msg, newState) => {
+            if (newState) {
+                state.patients = newState.patients;
+                state.nurseCalls = newState.nurseCalls || [];
+                renderAll();
+            }
+        });
+    }
+
     // Simulation loop: update vitals every 2 seconds
     setInterval(() => {
         simulateVitals();
@@ -843,7 +861,6 @@ function init() {
             const p = state.patients.find(pt => pt.id === state.selectedPatient.id);
             if (p) {
                 state.selectedPatient = p;
-                // Only update vital values in modal, not re-render entirely
                 const modalBody = document.getElementById('modal-body');
                 if (modalBody && document.getElementById('modal-overlay').classList.contains('active')) {
                     openPatientModal(p.id);

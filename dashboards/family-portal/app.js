@@ -275,10 +275,11 @@ function setupEvents() {
         const tokenInput = document.getElementById('access-token');
         const token = tokenInput.value.trim().toUpperCase();
 
-        if (PORTAL_PATIENTS[token]) {
+        const patient = window.SmartHospitalStore ? window.SmartHospitalStore.getPatient(token) : PORTAL_PATIENTS[token];
+
+        if (patient) {
             sessionStorage.setItem('portal_token', token);
-            renderPatientPortal(PORTAL_PATIENTS[token]);
-            startVitalsSimulation();
+            renderPatientPortal(patient);
         } else {
             alert('Invalid Passcode. Please try HK3M9X, PR582A, or AS451B');
         }
@@ -289,10 +290,10 @@ function setupEvents() {
         chip.addEventListener('click', () => {
             const token = chip.dataset.token;
             document.getElementById('access-token').value = token;
-            if (PORTAL_PATIENTS[token]) {
+            const patient = window.SmartHospitalStore ? window.SmartHospitalStore.getPatient(token) : PORTAL_PATIENTS[token];
+            if (patient) {
                 sessionStorage.setItem('portal_token', token);
-                renderPatientPortal(PORTAL_PATIENTS[token]);
-                startVitalsSimulation();
+                renderPatientPortal(patient);
             }
         });
     });
@@ -316,26 +317,15 @@ function setupEvents() {
 
         if (!text) return;
 
+        // Broadcast to SmartHospitalStore so Nurse Command Station receives the message
+        if (window.SmartHospitalStore && currentPatient) {
+            window.SmartHospitalStore.sendFamilyMessage(currentPatient.room, 'Family Member', `[${topic}] ${text}`);
+        }
+
         // Show success state
         statusEl.className = 'msg-status success';
-        statusEl.textContent = '✓ Message sent to Nurse Station desk!';
+        statusEl.textContent = '✓ Message sent directly to Nurse Station Command Desk!';
         document.getElementById('msg-text').value = '';
-
-        // Add to timeline
-        if (currentPatient) {
-            const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            currentPatient.timeline.unshift({
-                time: nowTime,
-                text: `Family message sent ("${topic}"): "${text}"`
-            });
-            // Re-render timeline
-            document.getElementById('portal-timeline').innerHTML = currentPatient.timeline.map(item => `
-                <div class="timeline-item">
-                    <div class="timeline-time">${item.time}</div>
-                    <div class="timeline-desc">${item.text}</div>
-                </div>
-            `).join('');
-        }
 
         setTimeout(() => {
             statusEl.textContent = '';
@@ -346,9 +336,11 @@ function setupEvents() {
 // Auto-login from session storage if present
 function checkExistingSession() {
     const savedToken = sessionStorage.getItem('portal_token');
-    if (savedToken && PORTAL_PATIENTS[savedToken]) {
-        renderPatientPortal(PORTAL_PATIENTS[savedToken]);
-        startVitalsSimulation();
+    if (savedToken) {
+        const patient = window.SmartHospitalStore ? window.SmartHospitalStore.getPatient(savedToken) : PORTAL_PATIENTS[savedToken];
+        if (patient) {
+            renderPatientPortal(patient);
+        }
     }
 }
 
@@ -356,4 +348,14 @@ function checkExistingSession() {
 document.addEventListener('DOMContentLoaded', () => {
     setupEvents();
     checkExistingSession();
+
+    if (window.SmartHospitalStore) {
+        window.SmartHospitalStore.subscribe((msg, newState) => {
+            const savedToken = sessionStorage.getItem('portal_token');
+            if (savedToken) {
+                const p = window.SmartHospitalStore.getPatient(savedToken);
+                if (p) renderPatientPortal(p);
+            }
+        });
+    }
 });

@@ -90,7 +90,7 @@ const ROUNDS_PATIENTS = [
 
 // State
 let state = {
-    patients: [...ROUNDS_PATIENTS],
+    patients: window.SmartHospitalStore ? window.SmartHospitalStore.getPatients() : [...ROUNDS_PATIENTS],
     activePatientId: 3, // Default to Room 103 (High risk)
     isRecording: false,
     recognition: null
@@ -248,12 +248,17 @@ function setupOrderForm() {
         if (!details) return;
 
         const p = getActivePatient();
-        p.orders.push({
-            id: `ord-${Date.now()}`,
-            category: cat,
-            text: details,
-            urgency: urgency
-        });
+        if (window.SmartHospitalStore) {
+            window.SmartHospitalStore.addDoctorOrder(p.room, cat, details, urgency);
+            state.patients = window.SmartHospitalStore.getPatients();
+        } else {
+            p.orders.push({
+                id: `ord-${Date.now()}`,
+                category: cat,
+                text: details,
+                urgency: urgency
+            });
+        }
 
         document.getElementById('order-details').value = '';
         renderOrdersList();
@@ -347,8 +352,13 @@ function setupSpeechRecognition() {
 
     // Save notes button
     document.getElementById('btn-save-note').addEventListener('click', () => {
-        getActivePatient().dictation = textarea.value;
-        alert('✓ Clinical notes saved to EHR for Room ' + getActivePatient().room);
+        const p = getActivePatient();
+        p.dictation = textarea.value;
+        if (window.SmartHospitalStore) {
+            window.SmartHospitalStore.addDoctorDictation(p.room, 'Dr. Patel', textarea.value);
+            state.patients = window.SmartHospitalStore.getPatients();
+        }
+        alert('✓ Clinical notes saved and broadcasted to Nurse & Patient terminals for Room ' + p.room);
     });
 }
 
@@ -373,7 +383,11 @@ function mockDictation() {
         ' Continue present medication regimen. '
     ];
     textarea.value += mockPhrases[Math.floor(Math.random() * mockPhrases.length)];
-    getActivePatient().dictation = textarea.value;
+    const p = getActivePatient();
+    p.dictation = textarea.value;
+    if (window.SmartHospitalStore) {
+        window.SmartHospitalStore.addDoctorDictation(p.room, 'Dr. Patel', textarea.value);
+    }
 }
 
 // ─── Digital Sign-Off (E-Sign) ───────────────────────────
@@ -384,6 +398,14 @@ function setupEsign() {
         p.rounded = true;
         p.dictation = document.getElementById('dictation-textarea').value;
 
+        if (window.SmartHospitalStore) {
+            if (p.dictation) {
+                window.SmartHospitalStore.addDoctorDictation(p.room, 'Dr. Patel', p.dictation);
+            }
+            window.SmartHospitalStore.togglePatientRounded(p.room);
+            state.patients = window.SmartHospitalStore.getPatients();
+        }
+
         // Check checklist items
         document.getElementById('chk-orders').checked = true;
         const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -392,7 +414,7 @@ function setupEsign() {
         renderProgress();
         renderPatientTabs();
 
-        alert(`🔒 Digital Signature Verified!\n\nRound completed and ${p.orders.length} order(s) signed for ${p.name} (Room ${p.room}).`);
+        alert(`🔒 Digital Signature Verified!\n\nRound completed and orders/notes signed for ${p.name} (Room ${p.room}).`);
     });
 }
 
@@ -413,6 +435,19 @@ function setupChecklist() {
 
 // Init
 document.addEventListener('DOMContentLoaded', () => {
+    if (window.SmartHospitalStore) {
+        state.patients = window.SmartHospitalStore.getPatients();
+
+        window.SmartHospitalStore.subscribe((msg, newState) => {
+            if (newState) {
+                state.patients = newState.patients;
+                renderProgress();
+                renderPatientTabs();
+                renderActivePatient();
+            }
+        });
+    }
+
     renderProgress();
     renderPatientTabs();
     renderActivePatient();
