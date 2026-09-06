@@ -3,37 +3,40 @@
    AI-Powered Smart Hospital Room
    ============================================ */
 
-// ─── Patient Database (Token Mapped) ─────────────────────────
+// ─── Patient Database (Token Mapped Fallback) ─────────────────────────
 const PORTAL_PATIENTS = {
     'HK3M9X': {
         id: 3, token: 'HK3M9X', name: 'Rajesh Kumar', initials: 'RK', age: 67, gender: 'Male',
-        room: '103', bed: 'B', diagnosis: 'Community-Acquired Pneumonia', admitDate: 'Aug 31, 2026', dayOfCare: 3,
-        familyStatus: { text: 'Stable & Improving', level: 'warn', desc: 'Responding well to antibiotic therapy and respiratory care.' },
+        room: 'Room 103 Bed B', diagnosis: 'Community-Acquired Pneumonia', admitDate: 'Aug 31, 2026', dayOfCare: 3,
+        status: { text: 'Stable & Improving', level: 'warn', desc: 'Responding well to antibiotic therapy and respiratory care.' },
         vitals: { hr: 82, spo2: 94, temp: 37.4 }, attendingDr: 'Dr. Patel', primaryNurse: 'Nurse Anjali',
         timeline: [
             { time: '11:30 AM', text: 'Completed morning respiratory check and oxygen therapy assessment.' },
             { time: '09:15 AM', text: 'Morning medication administered as per doctor orders.' },
-            { time: '08:00 AM', text: 'Physician rounds completed by Dr. Patel. Patient is resting comfortably.' }
+            { time: '08:00 AM', text: 'Physician rounds completed by Dr. Patel. Patient is resting comfortably.' },
+            { time: '07:00 AM', text: 'Morning shift handoff completed by Nurse Anjali.' }
         ]
     },
     'PR582A': {
         id: 2, token: 'PR582A', name: 'Priya Reddy', initials: 'PR', age: 58, gender: 'Female',
-        room: '102', bed: 'A', diagnosis: 'COPD Exacerbation', admitDate: 'Aug 28, 2026', dayOfCare: 6,
-        familyStatus: { text: 'Steady Progress', level: 'good', desc: 'Breathing comfortable. Planned discharge assessment tomorrow.' },
+        room: 'Room 102 Bed A', diagnosis: 'COPD Exacerbation', admitDate: 'Aug 28, 2026', dayOfCare: 6,
+        status: { text: 'Steady Progress', level: 'good', desc: 'Breathing comfortable. Planned discharge assessment tomorrow.' },
         vitals: { hr: 76, spo2: 96, temp: 36.8 }, attendingDr: 'Dr. Rao', primaryNurse: 'Nurse Priya',
         timeline: [
             { time: '12:00 PM', text: 'Lunch served. Patient ate well and took afternoon meds.' },
-            { time: '10:00 AM', text: 'Nebulizer therapy completed with improved lung sounds.' }
+            { time: '10:00 AM', text: 'Nebulizer therapy completed with improved lung sounds.' },
+            { time: '08:30 AM', text: 'Attending doctor review completed.' }
         ]
     },
     'AS451B': {
         id: 1, token: 'AS451B', name: 'Arjun Sharma', initials: 'AS', age: 45, gender: 'Male',
-        room: '101', bed: 'A', diagnosis: 'Acute Myocardial Infarction', admitDate: 'Aug 30, 2026', dayOfCare: 4,
-        familyStatus: { text: 'Resting & Stable', level: 'good', desc: 'Cardiac rhythm stable. Mobilization exercises initiated.' },
+        room: 'Room 101 Bed A', diagnosis: 'Acute Myocardial Infarction', admitDate: 'Aug 30, 2026', dayOfCare: 4,
+        status: { text: 'Resting & Stable', level: 'good', desc: 'Cardiac rhythm stable. Mobilization exercises initiated.' },
         vitals: { hr: 72, spo2: 98, temp: 36.6 }, attendingDr: 'Dr. Kapoor', primaryNurse: 'Nurse Meera',
         timeline: [
             { time: '11:00 AM', text: 'Bedside ECG completed — normal sinus rhythm confirmed.' },
-            { time: '09:30 AM', text: 'Light walking exercise assisted by physical therapy team.' }
+            { time: '09:30 AM', text: 'Light walking exercise assisted by physical therapy team.' },
+            { time: '07:30 AM', text: 'Breakfast completed and morning vitals recorded.' }
         ]
     }
 };
@@ -44,81 +47,37 @@ let updateInterval = null;
 
 // ─── Plain Language Mapping ──────────────────────────────
 function getPlainLanguageVitals(vitals) {
+    if (!vitals) return [];
     const items = [];
 
     // Heart Rate
-    const hr = vitals.hr;
+    const hr = vitals.hr || 75;
     if (hr >= 60 && hr <= 100) {
-        items.push({
-            icon: '💚',
-            level: 'good',
-            title: 'Heart Rate',
-            desc: 'Heart rate is normal and steady'
-        });
+        items.push({ icon: '💚', level: 'good', title: 'Heart Rate', desc: 'Heart rate is normal and steady' });
     } else if ((hr >= 40 && hr < 60) || (hr > 100 && hr <= 130)) {
-        items.push({
-            icon: '🟡',
-            level: 'warn',
-            title: 'Heart Rate',
-            desc: 'Heart rate is slightly outside normal range, being monitored'
-        });
+        items.push({ icon: '🟡', level: 'warn', title: 'Heart Rate', desc: 'Heart rate is slightly outside normal range, being monitored' });
     } else {
-        items.push({
-            icon: '🔴',
-            level: 'alert',
-            title: 'Heart Rate',
-            desc: 'Heart rate is receiving close clinical attention'
-        });
+        items.push({ icon: '🔴', level: 'alert', title: 'Heart Rate', desc: 'Heart rate is receiving close clinical attention' });
     }
 
     // Oxygen Level (SpO2)
-    const spo2 = vitals.spo2;
+    const spo2 = vitals.spo2 || 98;
     if (spo2 >= 96) {
-        items.push({
-            icon: '🫁',
-            level: 'good',
-            title: 'Oxygen Level',
-            desc: 'Oxygen saturation is good'
-        });
+        items.push({ icon: '🫁', level: 'good', title: 'Oxygen Level', desc: 'Oxygen saturation is good' });
     } else if (spo2 >= 92 && spo2 < 96) {
-        items.push({
-            icon: '🟡',
-            level: 'warn',
-            title: 'Oxygen Level',
-            desc: 'Oxygen level is slightly low, supported by care team'
-        });
+        items.push({ icon: '🟡', level: 'warn', title: 'Oxygen Level', desc: 'Oxygen level is slightly low, supported by care team' });
     } else {
-        items.push({
-            icon: '🔴',
-            level: 'alert',
-            title: 'Oxygen Level',
-            desc: 'Oxygen level is being actively managed by staff'
-        });
+        items.push({ icon: '🔴', level: 'alert', title: 'Oxygen Level', desc: 'Oxygen level is being actively managed by staff' });
     }
 
     // Body Temperature
-    const temp = vitals.temp;
+    const temp = vitals.temp || 36.8;
     if (temp >= 36.1 && temp <= 38.0) {
-        items.push({
-            icon: '🌡️',
-            level: 'good',
-            title: 'Body Temperature',
-            desc: 'Body temperature is completely normal'
-        });
+        items.push({ icon: '🌡️', level: 'good', title: 'Body Temperature', desc: 'Body temperature is completely normal' });
     } else if ((temp > 35.0 && temp < 36.1) || (temp > 38.0 && temp <= 39.0)) {
-        items.push({
-            icon: '🟡',
-            level: 'warn',
-            title: 'Body Temperature',
-            desc: 'Body temperature is slightly elevated/low'
-        });
+        items.push({ icon: '🟡', level: 'warn', title: 'Body Temperature', desc: 'Body temperature is slightly elevated/low' });
     } else {
-        items.push({
-            icon: '🔴',
-            level: 'alert',
-            title: 'Body Temperature',
-            desc: 'Temperature is being actively monitored by nursing team'
-        });
+        items.push({ icon: '🔴', level: 'alert', title: 'Body Temperature', desc: 'Temperature is being actively monitored by nursing team' });
     }
 
     return items;
@@ -131,22 +90,14 @@ function renderPatientPortal(patient) {
     currentPatient = patient;
 
     const initials = patient.initials || (patient.name ? patient.name.split(' ').map(n => n[0]).join('') : 'P');
-    const roomStr = String(patient.room).startsWith('Room') 
-        ? patient.room 
-        : `Room ${patient.room} Bed ${patient.bed || 'A'}`;
+    const roomStr = String(patient.room).startsWith('Room') ? patient.room : `Room ${patient.room} Bed ${patient.bed || 'A'}`;
     const genderStr = patient.gender === 'M' ? 'Male' : patient.gender === 'F' ? 'Female' : (patient.gender || 'Patient');
     const dayStr = patient.dayOfCare || patient.dayOfAdmission || 1;
-    const statusObj = patient.familyStatus || patient.status || {
-        text: 'Resting & Stable',
-        level: 'good',
-        desc: 'Vitals being monitored regularly by nursing staff.'
-    };
+    const statusObj = patient.familyStatus || patient.status || { text: 'Resting & Stable', level: 'good', desc: 'Vitals monitored regularly.' };
 
-    // Nav pill
     const navPill = document.getElementById('nav-patient-pill');
     if (navPill) navPill.textContent = `${patient.name} (${roomStr})`;
 
-    // Banner
     const initEl = document.getElementById('patient-initials');
     if (initEl) initEl.textContent = initials;
 
@@ -159,7 +110,6 @@ function renderPatientPortal(patient) {
     const subtextEl = document.getElementById('patient-subtext');
     if (subtextEl) subtextEl.textContent = `${patient.age || '--'} yrs, ${genderStr} · Admitted ${patient.admitDate || 'Recently'} (Day ${dayStr} of care)`;
 
-    // Status box
     const statusBox = document.getElementById('status-box');
     if (statusBox) {
         statusBox.innerHTML = `
@@ -172,10 +122,8 @@ function renderPatientPortal(patient) {
         `;
     }
 
-    // Vitals Summary
     renderVitalsSummary();
 
-    // Timeline
     const timelineEl = document.getElementById('portal-timeline');
     if (timelineEl) {
         const timelineItems = patient.timeline || [];
@@ -191,7 +139,6 @@ function renderPatientPortal(patient) {
         }
     }
 
-    // Care Team
     const careTeamEl = document.getElementById('care-team-list');
     if (careTeamEl) {
         careTeamEl.innerHTML = `
@@ -212,7 +159,6 @@ function renderPatientPortal(patient) {
         `;
     }
 
-    // Switch views
     const authScreen = document.getElementById('auth-screen');
     const portalScreen = document.getElementById('portal-screen');
     if (authScreen) authScreen.style.display = 'none';
@@ -220,9 +166,10 @@ function renderPatientPortal(patient) {
 }
 
 function renderVitalsSummary() {
-    if (!currentPatient) return;
+    if (!currentPatient || !currentPatient.vitals) return;
     const items = getPlainLanguageVitals(currentPatient.vitals);
     const listEl = document.getElementById('vitals-summary-list');
+    if (!listEl) return;
 
     listEl.innerHTML = items.map(item => `
         <div class="vital-summary-item">
@@ -235,29 +182,9 @@ function renderVitalsSummary() {
     `).join('');
 }
 
-// ─── Simulation Loop ─────────────────────────────────────
-
-function startVitalsSimulation() {
-    if (updateInterval) clearInterval(updateInterval);
-
-    updateInterval = setInterval(() => {
-        if (!currentPatient) return;
-
-        // Slight realistic variation
-        currentPatient.vitals.hr += Math.floor((Math.random() - 0.5) * 4);
-        currentPatient.vitals.hr = Math.min(130, Math.max(55, currentPatient.vitals.hr));
-
-        currentPatient.vitals.spo2 += Math.floor((Math.random() - 0.4) * 2);
-        currentPatient.vitals.spo2 = Math.min(100, Math.max(90, currentPatient.vitals.spo2));
-
-        renderVitalsSummary();
-    }, 4000);
-}
-
 function findPatientByToken(token) {
     if (!token) return null;
     const clean = String(token).trim().toUpperCase();
-
     let patient = null;
     if (window.SmartHospitalStore) {
         patient = window.SmartHospitalStore.getPatient(clean);
@@ -271,7 +198,6 @@ function findPatientByToken(token) {
 // ─── Authentication & Event Handlers ──────────────────────
 
 function setupEvents() {
-    // Login form submit
     const loginForm = document.getElementById('login-form');
     loginForm.addEventListener('submit', (e) => {
         e.preventDefault();
@@ -288,7 +214,6 @@ function setupEvents() {
         }
     });
 
-    // Hint chips click
     document.querySelectorAll('.hint-chip').forEach(chip => {
         chip.addEventListener('click', () => {
             const token = chip.dataset.token;
@@ -301,7 +226,6 @@ function setupEvents() {
         });
     });
 
-    // Logout
     document.getElementById('btn-logout').addEventListener('click', () => {
         sessionStorage.removeItem('portal_token');
         currentPatient = null;
@@ -310,7 +234,6 @@ function setupEvents() {
         document.getElementById('auth-screen').style.display = 'flex';
     });
 
-    // Message form submit
     const msgForm = document.getElementById('message-form');
     msgForm.addEventListener('submit', (e) => {
         e.preventDefault();
@@ -320,12 +243,10 @@ function setupEvents() {
 
         if (!text) return;
 
-        // Broadcast to SmartHospitalStore so Nurse Command Station receives the message
         if (window.SmartHospitalStore && currentPatient) {
             window.SmartHospitalStore.sendFamilyMessage(currentPatient.room, 'Family Member', `[${topic}] ${text}`);
         }
 
-        // Show success state
         statusEl.className = 'msg-status success';
         statusEl.textContent = '✓ Message sent directly to Nurse Station Command Desk!';
         document.getElementById('msg-text').value = '';
@@ -336,7 +257,6 @@ function setupEvents() {
     });
 }
 
-// Auto-login from session storage if present
 function checkExistingSession() {
     const savedToken = sessionStorage.getItem('portal_token');
     if (savedToken) {
@@ -347,7 +267,6 @@ function checkExistingSession() {
     }
 }
 
-// Init
 document.addEventListener('DOMContentLoaded', () => {
     setupEvents();
     checkExistingSession();
