@@ -7,8 +7,8 @@
 const PORTAL_PATIENTS = {
     'HK3M9X': {
         id: 3, token: 'HK3M9X', name: 'Rajesh Kumar', initials: 'RK', age: 67, gender: 'Male',
-        room: 'Room 103 Bed B', diagnosis: 'Community-Acquired Pneumonia', admitDate: 'Aug 31, 2026', dayOfCare: 3,
-        status: { text: 'Stable & Improving', level: 'warn', desc: 'Responding well to antibiotic therapy and respiratory care.' },
+        room: '103', bed: 'B', diagnosis: 'Community-Acquired Pneumonia', admitDate: 'Aug 31, 2026', dayOfCare: 3,
+        familyStatus: { text: 'Stable & Improving', level: 'warn', desc: 'Responding well to antibiotic therapy and respiratory care.' },
         vitals: { hr: 82, spo2: 94, temp: 37.4 }, attendingDr: 'Dr. Patel', primaryNurse: 'Nurse Anjali',
         timeline: [
             { time: '11:30 AM', text: 'Completed morning respiratory check and oxygen therapy assessment.' },
@@ -19,8 +19,8 @@ const PORTAL_PATIENTS = {
     },
     'PR582A': {
         id: 2, token: 'PR582A', name: 'Priya Reddy', initials: 'PR', age: 58, gender: 'Female',
-        room: 'Room 102 Bed A', diagnosis: 'COPD Exacerbation', admitDate: 'Aug 28, 2026', dayOfCare: 6,
-        status: { text: 'Steady Progress', level: 'good', desc: 'Breathing comfortable. Planned discharge assessment tomorrow.' },
+        room: '102', bed: 'A', diagnosis: 'COPD Exacerbation', admitDate: 'Aug 28, 2026', dayOfCare: 6,
+        familyStatus: { text: 'Steady Progress', level: 'good', desc: 'Breathing comfortable. Planned discharge assessment tomorrow.' },
         vitals: { hr: 76, spo2: 96, temp: 36.8 }, attendingDr: 'Dr. Rao', primaryNurse: 'Nurse Priya',
         timeline: [
             { time: '12:00 PM', text: 'Lunch served. Patient ate well and took afternoon meds.' },
@@ -30,8 +30,8 @@ const PORTAL_PATIENTS = {
     },
     'AS451B': {
         id: 1, token: 'AS451B', name: 'Arjun Sharma', initials: 'AS', age: 45, gender: 'Male',
-        room: 'Room 101 Bed A', diagnosis: 'Acute Myocardial Infarction', admitDate: 'Aug 30, 2026', dayOfCare: 4,
-        status: { text: 'Resting & Stable', level: 'good', desc: 'Cardiac rhythm stable. Mobilization exercises initiated.' },
+        room: '101', bed: 'A', diagnosis: 'Acute Myocardial Infarction', admitDate: 'Aug 30, 2026', dayOfCare: 4,
+        familyStatus: { text: 'Resting & Stable', level: 'good', desc: 'Cardiac rhythm stable. Mobilization exercises initiated.' },
         vitals: { hr: 72, spo2: 98, temp: 36.6 }, attendingDr: 'Dr. Kapoor', primaryNurse: 'Nurse Meera',
         timeline: [
             { time: '11:00 AM', text: 'Bedside ECG completed — normal sinus rhythm confirmed.' },

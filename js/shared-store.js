@@ -5,7 +5,7 @@
    ============================================ */
 
 (function (window) {
-    'use me strict';
+    'use strict';
 
     const CHANNEL_NAME = 'smart_hospital_bus_v1';
     const STORAGE_KEY = 'smart_hospital_state_v1';
@@ -341,8 +341,13 @@
             this.channel = null;
 
             if ('BroadcastChannel' in window) {
-                this.channel = new BroadcastChannel(CHANNEL_NAME);
-                this.channel.onmessage = (event) => this._handleRemoteMessage(event.data);
+                try {
+                    this.channel = new BroadcastChannel(CHANNEL_NAME);
+                    this.channel.onmessage = (event) => this._handleRemoteMessage(event.data);
+                } catch (e) {
+                    console.warn('BroadcastChannel unavailable (file:// origin?):', e.message);
+                    this.channel = null;
+                }
             }
 
             window.addEventListener('storage', (e) => {
