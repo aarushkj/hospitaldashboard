@@ -356,7 +356,31 @@
 
         _ensureInitialState() {
             const raw = localStorage.getItem(STORAGE_KEY);
-            if (!raw) {
+            let state = null;
+
+            if (raw) {
+                try {
+                    state = JSON.parse(raw);
+                    // Heal/upgrade state if patients lack token or familyStatus from old localStorage
+                    if (state && Array.isArray(state.patients)) {
+                        let stateModified = false;
+                        state.patients.forEach((p) => {
+                            const defaultP = DEFAULT_PATIENTS.find(dp => String(dp.id) === String(p.id) || String(dp.room) === String(p.room));
+                            if (defaultP) {
+                                if (!p.token) { p.token = defaultP.token; stateModified = true; }
+                                if (!p.familyStatus) { p.familyStatus = defaultP.familyStatus; stateModified = true; }
+                            }
+                        });
+                        if (stateModified) {
+                            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+                        }
+                    }
+                } catch (e) {
+                    state = null;
+                }
+            }
+
+            if (!state || !state.patients || state.patients.length === 0) {
                 const patients = DEFAULT_PATIENTS.map(p => {
                     p.news2 = calculateNEWS2(p.vitals, p.consciousness, p.supplementalO2, p.spo2Scale);
                     return p;
@@ -415,8 +439,14 @@
         }
 
         getPatient(idOrRoom) {
+            if (!idOrRoom) return null;
+            const query = String(idOrRoom).trim().toUpperCase();
             const patients = this.getPatients();
-            return patients.find(p => String(p.id) === String(idOrRoom) || String(p.room) === String(idOrRoom) || p.token === String(idOrRoom));
+            return patients.find(p => 
+                String(p.id).trim().toUpperCase() === query || 
+                String(p.room).trim().toUpperCase() === query || 
+                (p.token && String(p.token).trim().toUpperCase() === query)
+            );
         }
 
         getNurseCalls() {

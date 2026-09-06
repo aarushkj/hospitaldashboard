@@ -6,79 +6,34 @@
 // ─── Patient Database (Token Mapped) ─────────────────────────
 const PORTAL_PATIENTS = {
     'HK3M9X': {
-        id: 3,
-        token: 'HK3M9X',
-        name: 'Rajesh Kumar',
-        initials: 'RK',
-        age: 67,
-        gender: 'Male',
-        room: 'Room 103 Bed B',
-        diagnosis: 'Community-Acquired Pneumonia',
-        admitDate: 'Aug 31, 2026',
-        dayOfCare: 3,
-        status: {
-            text: 'Stable & Improving',
-            level: 'warn', // 'good', 'warn', 'alert'
-            desc: 'Responding well to antibiotic therapy and respiratory care.'
-        },
-        vitals: { hr: 82, spo2: 94, temp: 37.4 },
-        attendingDr: 'Dr. Patel',
-        primaryNurse: 'Nurse Anjali',
+        id: 3, token: 'HK3M9X', name: 'Rajesh Kumar', initials: 'RK', age: 67, gender: 'Male',
+        room: '103', bed: 'B', diagnosis: 'Community-Acquired Pneumonia', admitDate: 'Aug 31, 2026', dayOfCare: 3,
+        familyStatus: { text: 'Stable & Improving', level: 'warn', desc: 'Responding well to antibiotic therapy and respiratory care.' },
+        vitals: { hr: 82, spo2: 94, temp: 37.4 }, attendingDr: 'Dr. Patel', primaryNurse: 'Nurse Anjali',
         timeline: [
             { time: '11:30 AM', text: 'Completed morning respiratory check and oxygen therapy assessment.' },
             { time: '09:15 AM', text: 'Morning medication administered as per doctor orders.' },
-            { time: '08:00 AM', text: 'Physician rounds completed by Dr. Patel. Patient is resting comfortably.' },
-            { time: '07:00 AM', text: 'Morning shift handoff completed by Nurse Anjali.' }
+            { time: '08:00 AM', text: 'Physician rounds completed by Dr. Patel. Patient is resting comfortably.' }
         ]
     },
     'PR582A': {
-        id: 2,
-        token: 'PR582A',
-        name: 'Priya Reddy',
-        initials: 'PR',
-        age: 58,
-        gender: 'Female',
-        room: 'Room 102 Bed A',
-        diagnosis: 'COPD Exacerbation',
-        admitDate: 'Aug 28, 2026',
-        dayOfCare: 6,
-        status: {
-            text: 'Steady Progress',
-            level: 'good',
-            desc: 'Breathing comfortable. Planned discharge assessment tomorrow.'
-        },
-        vitals: { hr: 76, spo2: 96, temp: 36.8 },
-        attendingDr: 'Dr. Rao',
-        primaryNurse: 'Nurse Priya',
+        id: 2, token: 'PR582A', name: 'Priya Reddy', initials: 'PR', age: 58, gender: 'Female',
+        room: '102', bed: 'A', diagnosis: 'COPD Exacerbation', admitDate: 'Aug 28, 2026', dayOfCare: 6,
+        familyStatus: { text: 'Steady Progress', level: 'good', desc: 'Breathing comfortable. Planned discharge assessment tomorrow.' },
+        vitals: { hr: 76, spo2: 96, temp: 36.8 }, attendingDr: 'Dr. Rao', primaryNurse: 'Nurse Priya',
         timeline: [
             { time: '12:00 PM', text: 'Lunch served. Patient ate well and took afternoon meds.' },
-            { time: '10:00 AM', text: 'Nebulizer therapy completed with improved lung sounds.' },
-            { time: '08:30 AM', text: 'Attending doctor review completed.' }
+            { time: '10:00 AM', text: 'Nebulizer therapy completed with improved lung sounds.' }
         ]
     },
     'AS451B': {
-        id: 1,
-        token: 'AS451B',
-        name: 'Arjun Sharma',
-        initials: 'AS',
-        age: 45,
-        gender: 'Male',
-        room: 'Room 101 Bed A',
-        diagnosis: 'Acute Myocardial Infarction',
-        admitDate: 'Aug 30, 2026',
-        dayOfCare: 4,
-        status: {
-            text: 'Resting & Stable',
-            level: 'good',
-            desc: 'Cardiac rhythm stable. Mobilization exercises initiated.'
-        },
-        vitals: { hr: 72, spo2: 98, temp: 36.6 },
-        attendingDr: 'Dr. Kapoor',
-        primaryNurse: 'Nurse Meera',
+        id: 1, token: 'AS451B', name: 'Arjun Sharma', initials: 'AS', age: 45, gender: 'Male',
+        room: '101', bed: 'A', diagnosis: 'Acute Myocardial Infarction', admitDate: 'Aug 30, 2026', dayOfCare: 4,
+        familyStatus: { text: 'Resting & Stable', level: 'good', desc: 'Cardiac rhythm stable. Mobilization exercises initiated.' },
+        vitals: { hr: 72, spo2: 98, temp: 36.6 }, attendingDr: 'Dr. Kapoor', primaryNurse: 'Nurse Meera',
         timeline: [
             { time: '11:00 AM', text: 'Bedside ECG completed — normal sinus rhythm confirmed.' },
-            { time: '09:30 AM', text: 'Light walking exercise assisted by physical therapy team.' },
-            { time: '07:30 AM', text: 'Breakfast completed and morning vitals recorded.' }
+            { time: '09:30 AM', text: 'Light walking exercise assisted by physical therapy team.' }
         ]
     }
 };
@@ -299,6 +254,20 @@ function startVitalsSimulation() {
     }, 4000);
 }
 
+function findPatientByToken(token) {
+    if (!token) return null;
+    const clean = String(token).trim().toUpperCase();
+
+    let patient = null;
+    if (window.SmartHospitalStore) {
+        patient = window.SmartHospitalStore.getPatient(clean);
+    }
+    if (!patient && PORTAL_PATIENTS[clean]) {
+        patient = PORTAL_PATIENTS[clean];
+    }
+    return patient;
+}
+
 // ─── Authentication & Event Handlers ──────────────────────
 
 function setupEvents() {
@@ -309,13 +278,13 @@ function setupEvents() {
         const tokenInput = document.getElementById('access-token');
         const token = tokenInput.value.trim().toUpperCase();
 
-        const patient = window.SmartHospitalStore ? window.SmartHospitalStore.getPatient(token) : PORTAL_PATIENTS[token];
+        const patient = findPatientByToken(token);
 
         if (patient) {
             sessionStorage.setItem('portal_token', token);
             renderPatientPortal(patient);
         } else {
-            alert('Invalid Passcode. Please try HK3M9X, PR582A, or AS451B');
+            alert(`Invalid Passcode "${token}". Please try HK3M9X, PR582A, or AS451B`);
         }
     });
 
@@ -324,7 +293,7 @@ function setupEvents() {
         chip.addEventListener('click', () => {
             const token = chip.dataset.token;
             document.getElementById('access-token').value = token;
-            const patient = window.SmartHospitalStore ? window.SmartHospitalStore.getPatient(token) : PORTAL_PATIENTS[token];
+            const patient = findPatientByToken(token);
             if (patient) {
                 sessionStorage.setItem('portal_token', token);
                 renderPatientPortal(patient);
@@ -371,7 +340,7 @@ function setupEvents() {
 function checkExistingSession() {
     const savedToken = sessionStorage.getItem('portal_token');
     if (savedToken) {
-        const patient = window.SmartHospitalStore ? window.SmartHospitalStore.getPatient(savedToken) : PORTAL_PATIENTS[savedToken];
+        const patient = findPatientByToken(savedToken);
         if (patient) {
             renderPatientPortal(patient);
         }
@@ -387,7 +356,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.SmartHospitalStore.subscribe((msg, newState) => {
             const savedToken = sessionStorage.getItem('portal_token');
             if (savedToken) {
-                const p = window.SmartHospitalStore.getPatient(savedToken);
+                const p = findPatientByToken(savedToken);
                 if (p) renderPatientPortal(p);
             }
         });
