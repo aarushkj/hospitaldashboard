@@ -172,62 +172,96 @@ function getPlainLanguageVitals(vitals) {
 // ─── Render Functions ────────────────────────────────────
 
 function renderPatientPortal(patient) {
+    if (!patient) return;
     currentPatient = patient;
 
+    const initials = patient.initials || (patient.name ? patient.name.split(' ').map(n => n[0]).join('') : 'P');
+    const roomStr = String(patient.room).startsWith('Room') 
+        ? patient.room 
+        : `Room ${patient.room} Bed ${patient.bed || 'A'}`;
+    const genderStr = patient.gender === 'M' ? 'Male' : patient.gender === 'F' ? 'Female' : (patient.gender || 'Patient');
+    const dayStr = patient.dayOfCare || patient.dayOfAdmission || 1;
+    const statusObj = patient.familyStatus || patient.status || {
+        text: 'Resting & Stable',
+        level: 'good',
+        desc: 'Vitals being monitored regularly by nursing staff.'
+    };
+
     // Nav pill
-    document.getElementById('nav-patient-pill').textContent = `${patient.name} (${patient.room})`;
+    const navPill = document.getElementById('nav-patient-pill');
+    if (navPill) navPill.textContent = `${patient.name} (${roomStr})`;
 
     // Banner
-    document.getElementById('patient-initials').textContent = patient.initials;
-    document.getElementById('patient-name').textContent = patient.name;
-    document.getElementById('patient-room').textContent = patient.room;
-    document.getElementById('patient-subtext').textContent = `${patient.age} yrs, ${patient.gender} · Admitted ${patient.admitDate} (Day ${patient.dayOfCare} of care)`;
+    const initEl = document.getElementById('patient-initials');
+    if (initEl) initEl.textContent = initials;
+
+    const nameEl = document.getElementById('patient-name');
+    if (nameEl) nameEl.textContent = patient.name;
+
+    const roomEl = document.getElementById('patient-room');
+    if (roomEl) roomEl.textContent = roomStr;
+
+    const subtextEl = document.getElementById('patient-subtext');
+    if (subtextEl) subtextEl.textContent = `${patient.age || '--'} yrs, ${genderStr} · Admitted ${patient.admitDate || 'Recently'} (Day ${dayStr} of care)`;
 
     // Status box
     const statusBox = document.getElementById('status-box');
-    statusBox.innerHTML = `
-        <div class="status-badge-large ${patient.status.level}">
-            <span>${patient.status.level === 'good' ? '🟢' : patient.status.level === 'warn' ? '🟡' : '🔴'}</span>
-            <span>${patient.status.text}</span>
-        </div>
-        <p style="font-size: 0.8rem; color: var(--text-secondary); max-width: 320px; text-align: right;">${patient.status.desc}</p>
-        <span class="status-time">Last clinical check: ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-    `;
+    if (statusBox) {
+        statusBox.innerHTML = `
+            <div class="status-badge-large ${statusObj.level || 'good'}">
+                <span>${statusObj.level === 'alert' ? '🔴' : statusObj.level === 'warn' ? '🟡' : '🟢'}</span>
+                <span>${statusObj.text || 'Stable'}</span>
+            </div>
+            <p style="font-size: 0.8rem; color: var(--text-secondary); max-width: 320px; text-align: right;">${statusObj.desc || ''}</p>
+            <span class="status-time">Last clinical check: ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+        `;
+    }
 
     // Vitals Summary
     renderVitalsSummary();
 
     // Timeline
     const timelineEl = document.getElementById('portal-timeline');
-    timelineEl.innerHTML = patient.timeline.map(item => `
-        <div class="timeline-item">
-            <div class="timeline-time">${item.time}</div>
-            <div class="timeline-desc">${item.text}</div>
-        </div>
-    `).join('');
+    if (timelineEl) {
+        const timelineItems = patient.timeline || [];
+        if (timelineItems.length === 0) {
+            timelineEl.innerHTML = '<div class="timeline-item"><div class="timeline-desc">No recent activities logged today.</div></div>';
+        } else {
+            timelineEl.innerHTML = timelineItems.map(item => `
+                <div class="timeline-item">
+                    <div class="timeline-time">${item.time || ''}</div>
+                    <div class="timeline-desc">${item.text || ''}</div>
+                </div>
+            `).join('');
+        }
+    }
 
     // Care Team
     const careTeamEl = document.getElementById('care-team-list');
-    careTeamEl.innerHTML = `
-        <div class="care-member">
-            <div class="member-avatar">👨‍⚕️</div>
-            <div class="member-info">
-                <h4>${patient.attendingDr}</h4>
-                <p>Attending Physician · Cardiology</p>
+    if (careTeamEl) {
+        careTeamEl.innerHTML = `
+            <div class="care-member">
+                <div class="member-avatar">👨‍⚕️</div>
+                <div class="member-info">
+                    <h4>${patient.attendingDr || 'Dr. Patel'}</h4>
+                    <p>Attending Physician · Cardiology</p>
+                </div>
             </div>
-        </div>
-        <div class="care-member">
-            <div class="member-avatar">👩‍⚕️</div>
-            <div class="member-info">
-                <h4>${patient.primaryNurse}</h4>
-                <p>Primary Shift Nurse · Desk Ext #304</p>
+            <div class="care-member">
+                <div class="member-avatar">👩‍⚕️</div>
+                <div class="member-info">
+                    <h4>${patient.primaryNurse || 'Nurse Priya'}</h4>
+                    <p>Primary Shift Nurse · Desk Ext #304</p>
+                </div>
             </div>
-        </div>
-    `;
+        `;
+    }
 
     // Switch views
-    document.getElementById('auth-screen').style.display = 'none';
-    document.getElementById('portal-screen').style.display = 'flex';
+    const authScreen = document.getElementById('auth-screen');
+    const portalScreen = document.getElementById('portal-screen');
+    if (authScreen) authScreen.style.display = 'none';
+    if (portalScreen) portalScreen.style.display = 'flex';
 }
 
 function renderVitalsSummary() {
