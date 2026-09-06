@@ -187,7 +187,11 @@ function findPatientByToken(token) {
     const clean = String(token).trim().toUpperCase();
     let patient = null;
     if (window.SmartHospitalStore) {
-        patient = window.SmartHospitalStore.getPatient(clean);
+        try {
+            patient = window.SmartHospitalStore.getPatient(clean);
+        } catch (e) {
+            console.warn('Store lookup failed, using fallback:', e.message);
+        }
     }
     if (!patient && PORTAL_PATIENTS[clean]) {
         patient = PORTAL_PATIENTS[clean];

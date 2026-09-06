@@ -356,7 +356,11 @@
                 }
             });
 
-            this._ensureInitialState();
+            try {
+                this._ensureInitialState();
+            } catch (e) {
+                console.warn('Store initialization error:', e.message);
+            }
         }
 
         _ensureInitialState() {
@@ -401,12 +405,18 @@
         }
 
         _getState() {
-            const raw = localStorage.getItem(STORAGE_KEY);
-            if (!raw) {
-                this._ensureInitialState();
-                return JSON.parse(localStorage.getItem(STORAGE_KEY));
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) {
+                    this._ensureInitialState();
+                    const freshRaw = localStorage.getItem(STORAGE_KEY);
+                    return freshRaw ? JSON.parse(freshRaw) : { patients: [], nurseCalls: [], familyMessages: [] };
+                }
+                return JSON.parse(raw);
+            } catch (e) {
+                console.warn('Store _getState error:', e.message);
+                return { patients: [], nurseCalls: [], familyMessages: [] };
             }
-            return JSON.parse(raw);
         }
 
         _saveState(state, eventType, payload) {
@@ -440,18 +450,29 @@
         }
 
         getPatients() {
-            return this._getState().patients;
+            try {
+                const state = this._getState();
+                return Array.isArray(state && state.patients) ? state.patients : [];
+            } catch (e) {
+                console.warn('SmartHospitalStore.getPatients error:', e.message);
+                return [];
+            }
         }
 
         getPatient(idOrRoom) {
             if (!idOrRoom) return null;
-            const query = String(idOrRoom).trim().toUpperCase();
-            const patients = this.getPatients();
-            return patients.find(p => 
-                String(p.id).trim().toUpperCase() === query || 
-                String(p.room).trim().toUpperCase() === query || 
-                (p.token && String(p.token).trim().toUpperCase() === query)
-            );
+            try {
+                const query = String(idOrRoom).trim().toUpperCase();
+                const patients = this.getPatients();
+                return patients.find(p => 
+                    String(p.id).trim().toUpperCase() === query || 
+                    String(p.room).trim().toUpperCase() === query || 
+                    (p.token && String(p.token).trim().toUpperCase() === query)
+                ) || null;
+            } catch (e) {
+                console.warn('SmartHospitalStore.getPatient error:', e.message);
+                return null;
+            }
         }
 
         getNurseCalls() {
