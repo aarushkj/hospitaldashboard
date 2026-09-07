@@ -7,7 +7,7 @@
 const PATIENTS = [
     {
         id: 1, room: '101', bed: 'A',
-        name: 'Abhibnand', age: 45, gender: 'M',
+        name: 'Abhibnand jiji', age: 45, gender: 'M',
         diagnosis: 'Acute Myocardial Infarction',
         admitDate: '2026-08-30', dayOfAdmission: 4,
         attendingDr: 'Dr. Kapoor', primaryNurse: 'Nurse Meera',
