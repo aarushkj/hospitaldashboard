@@ -439,7 +439,7 @@ function renderWardGrid() {
 
         const sparkColor = p.news2.riskLevel === 'high' ? '#ef4444'
             : p.news2.riskLevel === 'medium' ? '#f59e0b'
-            : '#00b4d8';
+                : '#00b4d8';
 
         return `
         <div class="room-card ${riskClass}" data-patient-id="${p.id}" onclick="openPatientModal(${p.id})">
@@ -611,15 +611,15 @@ function openPatientModal(patientId) {
         <div class="modal-section">
             <div class="modal-section-title">Vital Trends (Last 30 Readings)</div>
             ${['hr', 'spo2', 'temp'].map(key => {
-                const labels = { hr: 'Heart Rate (bpm)', spo2: 'SpO₂ (%)', temp: 'Temperature (°C)' };
-                return `
+        const labels = { hr: 'Heart Rate (bpm)', spo2: 'SpO₂ (%)', temp: 'Temperature (°C)' };
+        return `
                 <div style="margin-bottom: var(--space-sm);">
                     <div style="font-size: 0.72rem; color: var(--text-tertiary); margin-bottom: 4px;">${labels[key]}</div>
                     <div class="modal-sparkline">
                         ${generateSparkline(p.history[key], sparkColorsModal[key], 60, 700)}
                     </div>
                 </div>`;
-            }).join('')}
+    }).join('')}
         </div>
 
         <div class="modal-section">
@@ -790,9 +790,9 @@ function setupEventListeners() {
     // Fullscreen
     document.getElementById('btn-fullscreen').addEventListener('click', () => {
         if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen().catch(() => {});
+            document.documentElement.requestFullscreen().catch(() => { });
         } else {
-            document.exitFullscreen().catch(() => {});
+            document.exitFullscreen().catch(() => { });
         }
     });
 
