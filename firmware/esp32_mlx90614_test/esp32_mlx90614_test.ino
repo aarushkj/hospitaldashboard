@@ -1,162 +1,175 @@
 /*
   ========================================================================
-  AI-Powered Smart Hospital Room — Sensor Test Routine
-  MLX90614 Contactless Infrared Temperature Sensor Test for ESP32 / ESP8266
+  AI-Powered Smart Hospital Room — MLX90614 Sensor Diagnostic & Test
+  Target: ESP32 DevKit V1 (Pure ASCII - No Serial Glitches)
   ========================================================================
-
-  Hardware Connections (ESP32 DevKit V1):
+  
+  WIRING CHECKLIST:
   -------------------------------------------------------------
-  MLX90614 (GY-906)   ESP32 Pin     ESP8266 (NodeMCU/D1 Mini)
+  MLX90614 (GY-906)   ESP32 DevKit Pin
   -------------------------------------------------------------
-  VIN                 3.3V          3.3V (⚠️ MLX90614 is rated 3.3V)
-  GND                 GND           GND
-  SDA                 GPIO 21       D2 (GPIO 4)
-  SCL                 GPIO 22       D1 (GPIO 5)
+  VIN                 VIN / 5V (or 3.3V if your sensor is 3V)
+  GND                 GND (Common Ground)
+  SCL                 GPIO 22 (Pin 2 from top-right corner)
+  SDA                 GPIO 21 (Pin 5 from top-right corner)
   -------------------------------------------------------------
-
-  I2C Bus Notes:
-  - Default I2C Address: 0x5A
-  - MLX90614 communicates over SMBus (a subset of I2C). The ESP32 I2C 
-    hardware clock should be configured to 50 kHz - 100 kHz (recommended 
-    50000 Hz) for reliable packet acknowledgment without bus lockups.
-  - Breakout boards (like GY-906) typically include built-in 4.7kΩ pull-up 
-    resistors on SDA and SCL to 3.3V.
-
-  Required Library:
-  - Open Arduino IDE -> Sketch -> Include Library -> Manage Libraries...
-  - Search for "Adafruit MLX90614" by Adafruit
-  - Install the library (and allow installing Adafruit BusIO if prompted)
+  CRITICAL: On ESP32 DevKit V1:
+  - Pin 2 is D22 (SCL)
+  - Pin 3 is TX0 (DO NOT USE)
+  - Pin 4 is RX0 (DO NOT USE)
+  - Pin 5 is D21 (SDA)
+  * There must be TWO EMPTY PINS between your SCL and SDA jumpers!
   ========================================================================
 */
 
 #include <Wire.h>
 #include <Adafruit_MLX90614.h>
 
-// Pin definitions
-#if defined(ESP32)
-  #define I2C_SDA 21
-  #define I2C_SCL 22
-  #define BOARD_NAME "ESP32 DevKit"
-#elif defined(ESP8266)
-  #define I2C_SDA D2 // GPIO 4
-  #define I2C_SCL D1 // GPIO 5
-  #define BOARD_NAME "ESP8266 NodeMCU"
-#else
-  #define BOARD_NAME "Generic Arduino"
-#endif
+#define I2C_SDA 21
+#define I2C_SCL 22
 
-// Sensor object
 Adafruit_MLX90614 mlx = Adafruit_MLX90614();
 
-// Timing variables
-unsigned long lastSampleTime = 0;
-const unsigned long SAMPLE_INTERVAL_MS = 1000; // Read every 1 second
+bool mlxReady = false;
+unsigned long lastScanTime = 0;
+const unsigned long SCAN_INTERVAL = 1500; // Scan every 1.5s until found
 
-// Function to scan I2C bus and confirm 0x5A presence
-bool scanI2CAddress(uint8_t targetAddress) {
-  byte error;
-  Wire.beginTransmission(targetAddress);
-  error = Wire.endTransmission();
-  return (error == 0);
-}
+void scanBus() {
+  const uint32_t testSpeeds[] = {10000, 25000, 50000, 100000};
+  byte count = 0;
 
-// Function to evaluate clinical temperature status
-const char* getTemperatureStatus(float objTempC) {
-  if (objTempC < 32.0) {
-    return "No Target / Room Object";
-  } else if (objTempC < 35.5) {
-    return "⚠️ Hypothermia / Low Reading";
-  } else if (objTempC >= 35.5 && objTempC <= 37.5) {
-    return "✅ Normal Body Temp";
-  } else if (objTempC > 37.5 && objTempC <= 38.3) {
-    return "🟡 Low-Grade Fever";
-  } else {
-    return "🔴 High Fever Alert!";
+  for (int s = 0; s < 4; s++) {
+    uint32_t speed = testSpeeds[s];
+    Wire.setClock(speed);
+
+    for (byte addr = 1; addr < 127; addr++) {
+      Wire.beginTransmission(addr);
+      byte error = Wire.endTransmission();
+
+      if (error == 0) {
+        Serial.print("  >>> Device FOUND at address: 0x");
+        if (addr < 16) Serial.print("0");
+        Serial.print(addr, HEX);
+        Serial.print(" (at ");
+        Serial.print(speed / 1000);
+        Serial.print(" kHz)");
+
+        if (addr == 0x5A) {
+          Serial.println(" <-- MLX90614 MATCH! [SUCCESS]");
+          count++;
+          if (mlx.begin()) {
+            Serial.println("[SUCCESS] MLX90614 driver connected! Streaming readings...\n");
+            mlxReady = true;
+            Serial.println("--------------------------------------------------");
+            Serial.println("Ambient (C)  |  Object (C)   |  Object (F)   | Status");
+            Serial.println("--------------------------------------------------");
+            return;
+          } else {
+            Serial.println("[WARN] Sensor ACKed 0x5A but mlx.begin() failed. Check power stability.");
+          }
+        } else if (addr == 0x57) {
+          Serial.println(" <-- MAX30102 Sensor");
+          count++;
+        } else {
+          Serial.println(" <-- Unknown I2C Device");
+          count++;
+        }
+      }
+    }
+  }
+
+  if (count == 0) {
+    Serial.println("  [!] Zero devices found at any speed (10kHz - 100kHz).");
   }
 }
 
 void setup() {
+  // 115200 baud
   Serial.begin(115200);
-  delay(1500); // Allow serial monitor to open
+  delay(2000);
 
   Serial.println();
   Serial.println("==================================================");
-  Serial.println("   AI Smart Hospital Room — MLX90614 Sensor Test  ");
-  Serial.printf("   Target Architecture: %s\n", BOARD_NAME);
+  Serial.println(" ESP32 - MLX90614 Sensor Hardware Diagnostic Tool ");
   Serial.println("==================================================");
 
-  // Initialize I2C Bus with explicit pins
-  #if defined(ESP32) || defined(ESP8266)
-  Serial.printf("[I2C] Initializing bus on SDA=GPIO%d, SCL=GPIO%d...\n", I2C_SDA, I2C_SCL);
+  // Initialize I2C
+  Serial.println("[INIT] Initializing I2C bus on SDA=GPIO 21, SCL=GPIO 22...");
   Wire.begin(I2C_SDA, I2C_SCL);
-  #else
-  Wire.begin();
-  #endif
+  Wire.setClock(100000); // 100 kHz standard mode
 
-  // MLX90614 prefers 50 kHz - 100 kHz SMBus clock speed
-  Wire.setClock(50000); 
-  Serial.println("[I2C] Clock speed set to 50 kHz (SMBus optimized).");
+  // First scan
+  scanBus();
 
-  // Step 1: Probe I2C Bus for Address 0x5A
-  Serial.print("[I2C] Checking for MLX90614 at address 0x5A... ");
-  if (scanI2CAddress(0x5A)) {
-    Serial.println("FOUND! ✅");
+  // Try initial MLX90614 begin
+  if (mlx.begin()) {
+    Serial.println("\n[SUCCESS] MLX90614 driver connected!");
+    mlxReady = true;
+    Serial.println("--------------------------------------------------");
+    Serial.println("Ambient (C)  |  Object (C)   |  Object (F)   | Status");
+    Serial.println("--------------------------------------------------");
   } else {
-    Serial.println("NOT FOUND! ❌");
-    Serial.println("\n[Diagnostic Checklist]");
-    Serial.println("1. Verify VIN is connected to 3.3V and GND to common GND.");
-    Serial.println("2. Verify SDA -> GPIO 21, SCL -> GPIO 22 on ESP32.");
-    Serial.println("3. Ensure wires are firmly seated in breadboard/header.");
-    Serial.println("4. Run an I2C scanner to check if address was reconfigured.");
-    Serial.println("Halting test routine until resolved...");
-    while (1) {
-      delay(1000);
-    }
+    Serial.println("\n[WAITING] Sensor not ready yet. Retrying in loop...");
   }
-
-  // Step 2: Initialize Adafruit MLX90614 library
-  if (!mlx.begin()) {
-    Serial.println("❌ ERROR: Could not connect to MLX90614 via Adafruit driver!");
-    Serial.println("Check pull-up resistors or try power-cycling the sensor.");
-    while (1) {
-      delay(1000);
-    }
-  }
-
-  Serial.println("✅ MLX90614 initialized successfully!");
-  Serial.println("\n[Measurement Protocol]");
-  Serial.println("- Optimal target distance: 2 cm to 5 cm from sensor front face.");
-  Serial.println("- Field of View: 90° cone (ensure no hot objects in background).");
-  Serial.println("--------------------------------------------------");
-  Serial.println("Ambient (°C) | Object (°C) | Object (°F) | Clinical Assessment");
-  Serial.println("--------------------------------------------------");
 }
 
 void loop() {
-  unsigned long currentMillis = millis();
+  unsigned long now = millis();
 
-  if (currentMillis - lastSampleTime >= SAMPLE_INTERVAL_MS) {
-    lastSampleTime = currentMillis;
+  // If sensor is not yet responding, keep scanning
+  if (!mlxReady) {
+    if (now - lastScanTime >= SCAN_INTERVAL) {
+      lastScanTime = now;
+      
+      // Quick probe on 0x5A
+      Wire.beginTransmission(0x5A);
+      byte err = Wire.endTransmission();
 
-    // Set SMBus safe clock speed prior to transaction
-    Wire.setClock(50000);
+      if (err == 0) {
+        Serial.println("\n[FOUND] Sensor ACKed at 0x5A! Initializing driver...");
+        if (mlx.begin()) {
+          Serial.println("[SUCCESS] MLX90614 ready! Streaming readings...\n");
+          mlxReady = true;
+          Serial.println("--------------------------------------------------");
+          Serial.println("Ambient (C)  |  Object (C)   |  Object (F)   | Status");
+          Serial.println("--------------------------------------------------");
+          return;
+        }
+      } else {
+        // Run full scan periodically
+        scanBus();
+      }
+    }
+    return;
+  }
 
-    // Read Temperatures
-    float ambientC = mlx.readAmbientTempC();
-    float objectC  = mlx.readObjectTempC();
-    float objectF  = mlx.readObjectTempF();
+  // Once connected, stream temperature readings every 1 second
+  if (now - lastScanTime >= 1000) {
+    lastScanTime = now;
 
-    // Verify readings are valid numbers
-    if (isnan(ambientC) || isnan(objectC)) {
-      Serial.println("⚠️ ERROR: Failed to read from MLX90614! Check wiring.");
+    float ambC = mlx.readAmbientTempC();
+    float objC = mlx.readObjectTempC();
+    float objF = mlx.readObjectTempF();
+
+    if (isnan(ambC) || isnan(objC)) {
+      Serial.println("[WARN] Sensor read failed! Re-scanning...");
+      mlxReady = false;
       return;
     }
 
-    // Determine clinical status
-    const char* status = getTemperatureStatus(objectC);
+    const char* status = "Normal";
+    if (objC < 32.0) status = "No Target";
+    else if (objC < 35.5) status = "Low / Hypothermia";
+    else if (objC > 38.0) status = "HIGH FEVER ALERT!";
+    else if (objC > 37.3) status = "Low-Grade Fever";
 
-    // Print formatted table row
-    Serial.printf(" %6.2f °C   |  %6.2f °C  |  %6.2f °F  | %s\n",
-                  ambientC, objectC, objectF, status);
+    Serial.print("  ");
+    Serial.print(ambC, 2);
+    Serial.print(" C     |   ");
+    Serial.print(objC, 2);
+    Serial.print(" C    |   ");
+    Serial.print(objF, 2);
+    Serial.print(" F   | ");
+    Serial.println(status);
   }
 }
